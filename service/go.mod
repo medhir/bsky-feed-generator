@@ -1,4 +1,4 @@
-module github.com/medhir/go-bsky-feed-generator/service
+module github.com/medhir/bsky-feed-generator/service
 
 go 1.22.0
 

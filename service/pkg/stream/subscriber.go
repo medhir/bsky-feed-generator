@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/bluesky-social/jetstream/pkg/models"
-	"github.com/medhir/go-bsky-feed-generator/service/pkg/db/db"
+	"github.com/medhir/bsky-feed-generator/service/pkg/db/db"
 	"log/slog"
 	"os"
 	"time"
