@@ -2,12 +2,12 @@ package gin
 
 import (
 	"fmt"
+	"github.com/ericvolp12/go-bsky-feed-generator/service/pkg/feedrouter"
 	"net/http"
 	"strconv"
 	"strings"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
-	"github.com/ericvolp12/go-bsky-feed-generator/pkg/feedrouter"
 	"github.com/gin-gonic/gin"
 	"github.com/whyrusleeping/go-did"
 	"go.opentelemetry.io/otel"

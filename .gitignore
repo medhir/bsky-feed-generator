@@ -9,7 +9,8 @@
 *.dylib
 
 .vscode/
-.env
+.idea/
+.env.example
 
 # Feed Generator Binary
 feedgen

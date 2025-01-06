@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/medhir/go-bsky-feed-generator/service/pkg/auth"
+	"github.com/medhir/go-bsky-feed-generator/service/pkg/feedrouter"
+	staticfeed "github.com/medhir/go-bsky-feed-generator/service/pkg/feeds/static"
+	ginendpoints "github.com/medhir/go-bsky-feed-generator/service/pkg/gin"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
 
-	auth "github.com/ericvolp12/go-bsky-feed-generator/pkg/auth"
-	"github.com/ericvolp12/go-bsky-feed-generator/pkg/feedrouter"
-	ginendpoints "github.com/ericvolp12/go-bsky-feed-generator/pkg/gin"
-
-	staticfeed "github.com/ericvolp12/go-bsky-feed-generator/pkg/feeds/static"
 	ginprometheus "github.com/ericvolp12/go-gin-prometheus"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"

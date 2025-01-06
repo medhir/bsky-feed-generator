@@ -1,0 +1,9 @@
+flask
+flask-cors
+torch
+fastai
+huggingface_hub
+transformers
+toml
+Pillow
+requests
