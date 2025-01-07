@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/bluesky-social/jetstream/pkg/models"
-	"github.com/medhir/bsky-feed-generator/service/pkg/db/db"
+	"github.com/medhir/bsky-feed-generator/service/pkg/db"
 	"log/slog"
 	"os"
 	"time"
@@ -115,7 +115,7 @@ func (s *subscriber) connect() error {
 	config := client.DefaultClientConfig()
 	config.WebsocketURL = jetstreamUri
 	config.Compress = true
-	s.sched = parallel.NewScheduler(4, "jetstream", s.log, func(ctx context.Context, event *models.Event) error {
+	s.sched = parallel.NewScheduler(2, "jetstream", s.log, func(ctx context.Context, event *models.Event) error {
 		return s.handleCommit(event)
 	})
 	c, err := client.NewClient(config, s.log, s.sched)

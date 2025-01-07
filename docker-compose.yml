@@ -1,16 +1,63 @@
-version: '3.8'
-
 services:
-  go-bsky-feed-generator:
+  bsky-feed-generator:
     build:
-      dockerfile: service/Dockerfile
+      context: ./service
+      dockerfile: dev.dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: go-bsky-feed-generator
-    container_name: go-bsky-feed-generator
+    image: bsky-feed-generator
+    container_name: bsky-feed-generator
     environment:
       - GIN_MODE=release
     env_file:
-      - .env.example
+      - .env
     ports:
       - "9032:9032"
+    volumes:
+      - ./service:/app
+    depends_on:
+      - db
+      - migration
+    restart: always
+
+  classifier:
+    build:
+      context: ./classifier
+      dockerfile: dev.dockerfile
+    volumes:
+      - ./classifier:/app
+    image: classifier
+    container_name: classifier
+    ports:
+      - "12000:12000"
+
+  db:
+    image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=just-birds
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migration:
+    build:
+      context: ./service
+      dockerfile: migrations.dockerfile
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=just-birds
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

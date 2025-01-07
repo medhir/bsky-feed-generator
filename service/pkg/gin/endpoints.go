@@ -2,7 +2,7 @@ package gin
 
 import (
 	"fmt"
-	"github.com/ericvolp12/go-bsky-feed-generator/service/pkg/feedrouter"
+	"github.com/medhir/bsky-feed-generator/service/pkg/feedrouter"
 	"net/http"
 	"strconv"
 	"strings"

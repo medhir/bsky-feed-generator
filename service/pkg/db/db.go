@@ -17,8 +17,8 @@ type dbPostgres struct {
 }
 
 type DB interface {
-	AddPost(did, rkey, uri string, nsfw bool, confidence float32) error
-	DeletePost(rkey string) error
+	AddPotentialBirdPost(did, rkey, uri string) error
+	DeletePotentialBirdPost(rkey string) error
 	AddLike(rkey string) error
 	DeleteLike(rkey string) error
 	AddRepost(rkey string) error
@@ -84,13 +84,13 @@ func (d *dbPostgres) HottestWithCursor(limit int64, cursor int64) ([]string, err
 	return posts, nil
 }
 
-func (d *dbPostgres) AddPost(did, rkey, uri string, nsfw bool, confidence float32) error {
-	_, err := d.db.Exec(d.ctx, "INSERT INTO post (did, record, uri, indexed_at) VALUES ($1, $2, $3, $4, $5, $6)", did, rkey, uri, nsfw, confidence, time.Now())
+func (d *dbPostgres) AddPotentialBirdPost(did, rkey, uri string) error {
+	_, err := d.db.Exec(d.ctx, "INSERT INTO potential_bird_post (did, rkey, uri, indexed_at) VALUES ($1, $2, $3, $4)", did, rkey, uri, time.Now())
 	return err
 }
 
-func (d *dbPostgres) DeletePost(rkey string) error {
-	_, err := d.db.Exec(d.ctx, "DELETE FROM post WHERE record = $1", rkey)
+func (d *dbPostgres) DeletePotentialBirdPost(rkey string) error {
+	_, err := d.db.Exec(d.ctx, "DELETE FROM potential_bird_post WHERE rkey = $1", rkey)
 	return err
 }
 

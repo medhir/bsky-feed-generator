@@ -10,7 +10,7 @@
 
 .vscode/
 .idea/
-.env.example
+.env
 
 # Feed Generator Binary
 feedgen
@@ -26,3 +26,6 @@ feedgen
 
 # Go workspace file
 go.work
+
+# air temp files
+service/tmp/

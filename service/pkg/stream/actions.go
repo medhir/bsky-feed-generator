@@ -62,7 +62,7 @@ func (s *subscriber) classify(did string, img *appbsky.EmbedImages_Image) (class
 		s.log.Warn(fmt.Sprintf("failed to marshal classify request: %s", err.Error()))
 		return classifyResponse{}, err
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/selfie", s.classifierURL), bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/potentialBird", s.classifierURL), bytes.NewBuffer(jsonBody))
 	if err != nil {
 		s.log.Warn(fmt.Sprintf("failed to create classify request: %s", err.Error()))
 		return classifyResponse{}, err

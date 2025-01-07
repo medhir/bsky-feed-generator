@@ -24,14 +24,14 @@ func (s *subscriber) handleCreatePost(event *models.Event) error {
 				continue
 			}
 			// if post contains picture with high confidence, add to DB
-			if response.Label == "owl" && response.Confidence > 0.9 {
+			if response.Label == "bird" && response.Confidence > 0.85 {
 				did := event.Did
 				rkey := event.Commit.RKey
 				postURL := fmt.Sprintf("https://bsky.app/profile/%s/post/%s", did, rkey)
-				s.log.Info("Owl Identified")
+				s.log.Info("Bird Identified")
 				s.log.Info(fmt.Sprintf("Post URL: %s", postURL))
 				s.log.Info(fmt.Sprintf("Confidence: %f", response.Confidence))
-				err := s.db.AddPost(did, rkey, postURL, false, float32(response.Confidence))
+				err := s.db.AddPotentialBirdPost(did, rkey, postURL)
 				if err != nil {
 					s.log.Warn(fmt.Sprintf("failed to add post to DB: %s", err.Error()))
 					continue
@@ -47,7 +47,7 @@ func (s *subscriber) handleCreatePost(event *models.Event) error {
 
 func (s *subscriber) handleDeletePost(event *models.Event) error {
 	rkey := event.Commit.RKey
-	if err := s.db.DeletePost(rkey); err != nil {
+	if err := s.db.DeletePotentialBirdPost(rkey); err != nil {
 		s.log.Warn(fmt.Sprintf("failed to delete post from DB: %s", err.Error()))
 		return err
 	}
@@ -61,7 +61,7 @@ func (s *subscriber) handleCreateLike(event *models.Event) error {
 		return err
 	}
 	rkey := strings.Split(like.Subject.Uri, "/")[4]
-	err := s.db.IncrementLike(rkey)
+	err := s.db.AddLike(rkey)
 	if err != nil {
 		s.log.Warn(fmt.Sprintf("failed to increment like: %s", err.Error()))
 		return err
@@ -80,7 +80,7 @@ func (s *subscriber) handleCreateRepost(event *models.Event) error {
 		return err
 	}
 	rkey := strings.Split(repost.Subject.Uri, "/")[4]
-	err := s.db.IncrementRepost(rkey)
+	err := s.db.AddRepost(rkey)
 	if err != nil {
 		s.log.Warn(fmt.Sprintf("failed to increment repost: %s", err.Error()))
 		return err

@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/medhir/bsky-feed-generator/service/pkg/auth"
+	"github.com/medhir/bsky-feed-generator/service/pkg/db"
 	"github.com/medhir/bsky-feed-generator/service/pkg/feedrouter"
 	staticfeed "github.com/medhir/bsky-feed-generator/service/pkg/feeds/static"
 	ginendpoints "github.com/medhir/bsky-feed-generator/service/pkg/gin"
+	"github.com/medhir/bsky-feed-generator/service/pkg/stream"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,7 +29,8 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Configure feed generator from environment variables
 
@@ -134,7 +139,31 @@ func main() {
 	}
 
 	log.Printf("Starting server on port %s", port)
-	router.Run(fmt.Sprintf(":%s", port))
+	go func() {
+		if err := router.Run(fmt.Sprintf(":%s", port)); err != nil {
+			log.Printf("HTTP server error: %v", err)
+			cancel()
+		}
+	}()
+
+	dbInstance, err := db.NewDB(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create DB: %v", err)
+	}
+	logger := slog.Default()
+	subscriber, err := stream.NewSubscriber(ctx, dbInstance, logger)
+	if err != nil {
+		log.Fatalf("Failed to create subscriber: %v", err)
+	}
+	// Run subscriber in main goroutine
+	for {
+		if err := subscriber.Run(); err != nil && !errors.Is(err, context.Canceled) {
+			log.Printf("Subscriber error: %v, retrying in 1 second...", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		break
+	}
 }
 
 // installExportPipeline registers a trace provider instance as a global trace provider,
