@@ -58,7 +58,8 @@ def classify_bird(image):
 
         is_bird = probs[0][0].item() > probs[0][1].item()
         confidence = float(max(probs[0]).item())
-        label = 'bird' if is_bird else 'not_bird',
+        label = 'bird' if is_bird else 'not_bird'
+        logger.info(f"Classification: {label} ({confidence:.2f})")
         return label, confidence
 
 @app.route('/classify', methods=['POST'])
