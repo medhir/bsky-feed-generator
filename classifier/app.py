@@ -8,10 +8,9 @@ from io import BytesIO
 import os
 import logging
 
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
 
 app = Flask(__name__)
 CORS(app)
@@ -21,7 +20,8 @@ try:
     # Load CLIP model and processor
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-    device = "mps" if torch.mps.is_available() else "cpu"
+    # device = "cuda" if torch.cuda.is_available() else "cpu" - NVIDIA GPUs
+    device = "mps" if torch.mps.is_available() else "cpu" # Apple Silicon
     model = model.to(device)
 except Exception as e:
     logger.error(f"Failed to load model: {e}")
@@ -58,10 +58,10 @@ def classify_bird(image):
 
         is_bird = probs[0][0].item() > probs[0][1].item()
         confidence = float(max(probs[0]).item())
+        label = 'bird' if is_bird else 'not_bird',
+        return label, confidence
 
-        return is_bird, confidence
-
-@app.route('/potentialBird', methods=['POST'])
+@app.route('/classify', methods=['POST'])
 def classify_image():
     try:
         data = request.get_json()
@@ -71,18 +71,20 @@ def classify_image():
             return jsonify({'error': 'No URL provided'}), 400
 
         img = process_image_url(data['image_url'])
-        is_bird, confidence = classify_bird(img)
-        if is_bird:
-            logger.info(f"Image {data['image_url']} contains a bird with confidence: {confidence}")
+        label, confidence = classify_bird(img)
 
         return jsonify({
-            'label': 'bird' if is_bird else 'not_bird',
+            'label': label,
             'confidence': confidence
         })
 
     except Exception as e:
         logger.error(f"Error during classification: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+@app.route('/healthcheck', methods=['GET'])
+def healthcheck():
+    return jsonify({'status': 'ok'}), 200
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 12000))
