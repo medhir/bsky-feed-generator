@@ -1,8 +1,8 @@
 # go-bsky-feed-generator
-batteries-included BlueSky Feed Generator template using Go and Python. 
+a more "batteries-included" BlueSky Feed Generator template using Go and Python. 
 
 - `feedgen` contains the Go service, which subscribes to the Bluesky firehose and serves custom feeds to users
-- `classifier` leverages the transformers Python library and Flask to run classification tasks
+- `classifier` contains a Python (Flask) service that leverages the [CLIP model](https://openai.com/index/clip/) to run classification tasks
 
 
 ## Requirements
@@ -28,7 +28,7 @@ Update the variables in `.env` when you actually want to deploy the service some
 
 ## Accessing
 
-This service exposes the following routes:
+`feedgen` exposes the following routes:
 
 - `/.well-known/did.json`
   - This route is used by ATProto to verify ownership of the DID the service is claiming, it's a static JSON document.
@@ -39,6 +39,13 @@ This service exposes the following routes:
 - `/xrpc/app.bsky.feed.describeFeedGenerator`
   - This route is how the service advertises which feeds it supports to clients.
   - You can see how those are parsed and handled in `pkg/gin/endpoints.go:DescribeFeeds()`
+
+`classifier` exposes the following routes:
+  - `/classify`
+    - This route is used to classify a given text. It expects a POST request with a JSON body containing the `image_url` to classify.
+    - You can see how this is handled in `classifier/app.py:classify()`
+  - `/healthcheck`
+    - This route is used to check if the service is running.
 
 ## Publishing
 
