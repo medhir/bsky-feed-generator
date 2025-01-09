@@ -28,4 +28,7 @@ feedgenerator
 go.work
 
 # air temp files
-service/tmp/
+feedgen/tmp/
+
+# mac os
+.DS_Store
