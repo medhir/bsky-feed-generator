@@ -19,13 +19,13 @@ type dbPostgres struct {
 type DB interface {
 	AddPost(did, rkey, uri string) error
 	DeletePost(rkey string) error
-	AddLike(rkey string) error
+	AddLike(did, rkey, postRkey string) error
 	DeleteLike(rkey string) error
-	AddRepost(rkey string) error
+	AddRepost(did, rkey, postRkey string) error
 	DeleteRepost(rkey string) error
 
 	MostRecentWithCursor(limit int64, cursor int64) ([]string, error)
-	HottestWithCursor(limit int64, cursor int64) ([]string, error)
+	MostPopularWithCursor(limit int64, cursor int64) ([]string, error)
 }
 
 func NewDB(ctx context.Context) (DB, error) {
@@ -46,7 +46,7 @@ func NewDB(ctx context.Context) (DB, error) {
 }
 
 func (d *dbPostgres) MostRecentWithCursor(limit int64, cursor int64) ([]string, error) {
-	rows, err := d.db.Query(d.ctx, "", cursor, limit)
+	rows, err := d.db.Query(d.ctx, "SELECT did, record FROM post ORDER BY indexed_at DESC OFFSET $1 LIMIT $2", cursor, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,16 @@ func (d *dbPostgres) MostRecentWithCursor(limit int64, cursor int64) ([]string, 
 	return posts, nil
 }
 
-func (d *dbPostgres) HottestWithCursor(limit int64, cursor int64) ([]string, error) {
-	rows, err := d.db.Query(d.ctx, "", cursor, limit)
+func (d *dbPostgres) MostPopularWithCursor(limit int64, cursor int64) ([]string, error) {
+	query := `
+        SELECT p.did, p.record 
+        FROM post p
+        LEFT JOIN post_like pl ON p.record = pl.post_rkey
+        GROUP BY p.did, p.record
+        ORDER BY COUNT(pl.record) DESC
+        OFFSET $1 LIMIT $2`
+
+	rows, err := d.db.Query(d.ctx, query, cursor, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -85,27 +93,71 @@ func (d *dbPostgres) HottestWithCursor(limit int64, cursor int64) ([]string, err
 }
 
 func (d *dbPostgres) AddPost(did, rkey, uri string) error {
-	_, err := d.db.Exec(d.ctx, "INSERT INTO post (did, rkey, uri, indexed_at) VALUES ($1, $2, $3, $4)", did, rkey, uri, time.Now())
+	_, err := d.db.Exec(d.ctx, "INSERT INTO post (did, record, uri, indexed_at) VALUES ($1, $2, $3, $4)", did, rkey, uri, time.Now())
 	return err
 }
 
 func (d *dbPostgres) DeletePost(rkey string) error {
-	_, err := d.db.Exec(d.ctx, "DELETE FROM post WHERE rkey = $1", rkey)
+	_, err := d.db.Exec(d.ctx, "DELETE FROM post WHERE record = $1", rkey)
 	return err
 }
 
-func (d *dbPostgres) AddLike(rkey string) error {
-	return nil
+func (d *dbPostgres) AddLike(did, rkey, postRkey string) error {
+	tx, err := d.db.Begin(d.ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(d.ctx)
+
+	var exists bool
+	err = tx.QueryRow(d.ctx, "SELECT EXISTS(SELECT 1 FROM post WHERE record = $1)", postRkey).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	_, err = tx.Exec(d.ctx, "INSERT INTO post_like (did, record, post_rkey, indexed_at) VALUES ($1, $2, $3, $4)",
+		did, rkey, postRkey, time.Now())
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(d.ctx)
 }
 
 func (d *dbPostgres) DeleteLike(rkey string) error {
-	return nil
+	_, err := d.db.Exec(d.ctx, "DELETE FROM post_like WHERE record = $1", rkey)
+	return err
 }
 
-func (d *dbPostgres) AddRepost(rkey string) error {
-	return nil
+func (d *dbPostgres) AddRepost(did, rkey, postRkey string) error {
+	tx, err := d.db.Begin(d.ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(d.ctx)
+
+	var exists bool
+	err = tx.QueryRow(d.ctx, "SELECT EXISTS(SELECT 1 FROM post WHERE record = $1)", postRkey).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	_, err = tx.Exec(d.ctx, "INSERT INTO post_repost (did, record, post_rkey, indexed_at) VALUES ($1, $2, $3, $4)",
+		did, rkey, postRkey, time.Now())
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(d.ctx)
 }
 
 func (d *dbPostgres) DeleteRepost(rkey string) error {
-	return nil
+	_, err := d.db.Exec(d.ctx, "DELETE FROM post_repost WHERE record = $1", rkey)
+	return err
 }

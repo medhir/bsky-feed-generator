@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS post(
-    rkey varchar(59) primary key not null,
+    record varchar(59) primary key not null,
     uri varchar(76) not null,
     did varchar(32) not null,
     indexed_at timestamptz not null
