@@ -7,6 +7,7 @@ import (
 	"github.com/medhir/bsky-feed-generator/feedgen/pkg/auth"
 	"github.com/medhir/bsky-feed-generator/feedgen/pkg/db"
 	"github.com/medhir/bsky-feed-generator/feedgen/pkg/feedrouter"
+	"github.com/medhir/bsky-feed-generator/feedgen/pkg/feeds/dynamic"
 	staticfeed "github.com/medhir/bsky-feed-generator/feedgen/pkg/feeds/static"
 	ginendpoints "github.com/medhir/bsky-feed-generator/feedgen/pkg/gin"
 	"github.com/medhir/bsky-feed-generator/feedgen/pkg/stream"
@@ -151,6 +152,14 @@ func main() {
 		log.Fatalf("Failed to create DB: %v", err)
 	}
 	logger := slog.Default()
+
+	// register dynamic feeds
+	justBirdsFeed, justBirdsFeedAliases := dynamic.NewDynamicFeed(ctx, feedActorDID, "JustBirds", dbInstance.MostRecentWithCursor, logger)
+	feedRouter.AddFeed(justBirdsFeedAliases, justBirdsFeed)
+	mostPopularBirds, mostPopularBirdsAliases := dynamic.NewDynamicFeed(ctx, feedActorDID, "MostPopularBirds", dbInstance.MostPopularWithCursor, logger)
+	feedRouter.AddFeed(mostPopularBirdsAliases, mostPopularBirds)
+
+	// start listening for events from bsky firehose
 	subscriber, err := stream.NewSubscriber(ctx, dbInstance, logger)
 	if err != nil {
 		log.Fatalf("Failed to create subscriber: %v", err)

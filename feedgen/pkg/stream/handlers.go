@@ -60,8 +60,8 @@ func (s *subscriber) handleCreateLike(event *models.Event) error {
 		s.log.Warn(fmt.Sprintf("failed to parse app.bsky.feed.like record: %s", err.Error()))
 		return err
 	}
-	rkey := strings.Split(like.Subject.Uri, "/")[4]
-	err := s.db.AddLike(rkey)
+	postRkey := strings.Split(like.Subject.Uri, "/")[4]
+	err := s.db.AddLike(event.Did, event.Commit.RKey, postRkey)
 	if err != nil {
 		s.log.Warn(fmt.Sprintf("failed to increment like: %s", err.Error()))
 		return err
@@ -70,6 +70,11 @@ func (s *subscriber) handleCreateLike(event *models.Event) error {
 }
 
 func (s *subscriber) handleDeleteLike(event *models.Event) error {
+	rkey := event.Commit.RKey
+	if err := s.db.DeleteLike(rkey); err != nil {
+		s.log.Warn(fmt.Sprintf("failed to delete like from DB: %s", err.Error()))
+		return err
+	}
 	return nil
 }
 
@@ -79,8 +84,8 @@ func (s *subscriber) handleCreateRepost(event *models.Event) error {
 		s.log.Warn(fmt.Sprintf("failed to parse app.bsky.feed.repost record: %s", err.Error()))
 		return err
 	}
-	rkey := strings.Split(repost.Subject.Uri, "/")[4]
-	err := s.db.AddRepost(rkey)
+	postRkey := strings.Split(repost.Subject.Uri, "/")[4]
+	err := s.db.AddRepost(event.Did, event.Commit.RKey, postRkey)
 	if err != nil {
 		s.log.Warn(fmt.Sprintf("failed to increment repost: %s", err.Error()))
 		return err
@@ -89,5 +94,10 @@ func (s *subscriber) handleCreateRepost(event *models.Event) error {
 }
 
 func (s *subscriber) handleDeleteRepost(event *models.Event) error {
+	rkey := event.Commit.RKey
+	if err := s.db.DeleteRepost(rkey); err != nil {
+		s.log.Warn(fmt.Sprintf("failed to delete repost from DB: %s", err.Error()))
+		return err
+	}
 	return nil
 }
