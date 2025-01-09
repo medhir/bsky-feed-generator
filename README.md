@@ -1,5 +1,8 @@
 # go-bsky-feed-generator
-A minimal implementation of a BlueSky Feed Generator in Go
+batteries-included BlueSky Feed Generator template using Go and Python. 
+
+- `feedgen` contains the Go service, which subscribes to the Bluesky firehose and serves custom feeds to users
+- `classifier` leverages the transformers Python library and Flask to run classification tasks
 
 
 ## Requirements
@@ -10,7 +13,12 @@ To run this feed generator, all you need is `docker` with `docker-compose`.
 
 Start up the feed generator by running: `make up`
 
-This will build the feed generator service binary inside a docker container and stand up the service on your machine at port `9032`.
+This will:
+
+- build the feed generator service binary inside a docker container and stand up the service on your machine at port `9032`.
+- load the CLIP model and run the classifier at port `12000`
+- create a Postgres instance with the database `feed-generator` at port `5032`
+- run database migrations, if any
 
 To view a sample static feed (with only one post) go to:
 
