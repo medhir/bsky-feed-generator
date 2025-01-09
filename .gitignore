@@ -13,7 +13,7 @@
 .env
 
 # Feed Generator Binary
-feedgen
+feedgenerator
 
 # Test binary, built with `go test -c`
 *.test
