@@ -1,4 +1,4 @@
-# go-bsky-feed-generator
+# bsky-feed-generator
 a more "batteries-included" BlueSky Feed Generator template using Go and Python. 
 
 - `feedgen` contains the Go service, which subscribes to the Bluesky firehose and serves custom feeds to users
