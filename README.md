@@ -20,6 +20,8 @@ This will:
 - create a Postgres instance with the database `feed-generator` at port `5032`
 - run database migrations, if any
 
+Both `feedgen` and `classifier` support hot reloading to see updates in real-time for any changes you make to the services locally. 
+
 To view a sample static feed (with only one post) go to:
 
 - [`http://localhost:9032/xrpc/app.bsky.feed.getFeedSkeleton?feed=at://did:plc:replace-me-with-your-did/app.bsky.feed.generator/static`](http://localhost:9032/xrpc/app.bsky.feed.getFeedSkeleton?feed=at://did:plc:replace-me-with-your-did/app.bsky.feed.generator/static)
