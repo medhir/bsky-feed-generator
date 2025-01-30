@@ -21,7 +21,7 @@ type Endpoints struct {
 type DidResponse struct {
 	Context []string      `json:"@context"`
 	ID      string        `json:"id"`
-	Service []did.Service `json:"feedgen"`
+	Service []did.Service `json:"service"`
 }
 
 func NewEndpoints(feedRouter *feedrouter.FeedRouter) *Endpoints {
